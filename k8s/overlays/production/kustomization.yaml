@@ -10,4 +10,4 @@ patches:
 images:
 - name: ghcr.io/cyrildesch/dancing-music
   newName: ghcr.io/cyrildesch/dancing-music
-  newTag: sha-9b790fa
+  newTag: sha-81c57d6
