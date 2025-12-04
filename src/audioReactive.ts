@@ -172,6 +172,93 @@ export async function unmuteAudio() {
   unlockAudioFromGesture();
 }
 
+// --- iframe API functions ---
+function notifyParent(message: object) {
+  if (window.parent !== window) {
+    window.parent.postMessage(message, "*");
+  }
+}
+
+export function setAudioUrl(url: string) {
+  // Reset audio state for new track
+  hasTriedAutoplay = false;
+  hasUnlockedAudio = false;
+
+  // Disconnect old source if exists
+  if (sourceNode) {
+    sourceNode.disconnect();
+    sourceNode = null;
+  }
+
+  if (!audioElement) {
+    audioElement = new Audio();
+    audioElement.loop = true;
+    audioElement.crossOrigin = "anonymous";
+    audioElement.preload = "auto";
+    audioElement.addEventListener("loadedmetadata", () => {
+      audioState.duration = audioElement?.duration || 0;
+    });
+  }
+
+  audioElement.src = url;
+  audioElement.load();
+  notifyParent({ type: "audioUrlSet" });
+}
+
+export function stopAudio() {
+  if (audioElement) {
+    audioElement.pause();
+    audioElement.currentTime = 0;
+  }
+  notifyParent({ type: "audioStopped" });
+}
+
+export function setVolume(volume: number) {
+  if (audioElement) {
+    audioElement.volume = Math.max(0, Math.min(1, volume));
+  }
+  notifyParent({ type: "volumeSet", volume });
+}
+
+export function getStatus() {
+  const status = {
+    type: "status",
+    playing: audioElement ? !audioElement.paused : false,
+    currentTime: audioElement?.currentTime || 0,
+    duration: audioState.duration,
+    volume: audioElement?.volume || 1,
+  };
+  notifyParent(status);
+  return status;
+}
+
+export function notifyReady() {
+  notifyParent({ type: "ready" });
+}
+
+export function handleIframeMessage(data: any) {
+  if (!data || typeof data !== "object") return;
+
+  switch (data.type) {
+    case "setAudioUrl":
+      if (data.url) setAudioUrl(data.url);
+      break;
+    case "startAudio":
+      unlockAudioFromGesture();
+      notifyParent({ type: "audioStarted" });
+      break;
+    case "stopAudio":
+      stopAudio();
+      break;
+    case "setVolume":
+      if (typeof data.volume === "number") setVolume(data.volume);
+      break;
+    case "getStatus":
+      getStatus();
+      break;
+  }
+}
+
 // called each frame from R3F
 export function updateAudio(dt: number) {
   if (!audioElement) return;

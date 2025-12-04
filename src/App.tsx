@@ -11,6 +11,8 @@ import {
   audioState,
   initAudioAutoplay,
   unlockAudioFromGesture,
+  handleIframeMessage,
+  notifyReady,
 } from "./audioReactive";
 
 function AnimatedBackground() {
@@ -189,6 +191,22 @@ export default function App() {
       window.removeEventListener("touchstart", unlock, true);
       window.removeEventListener("keydown", unlock, true);
       document.removeEventListener("visibilitychange", visibilityHandler, true);
+    };
+  }, []);
+
+  // Listen for iframe postMessage API
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      handleIframeMessage(event.data);
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Notify parent that iframe is ready
+    notifyReady();
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
     };
   }, []);
 
