@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dancing-music-production
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CyrilDesch/dancing-music.git
+    targetRevision: deploy-production
+    path: k8s/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dancing-music-production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

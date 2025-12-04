@@ -6,12 +6,12 @@ export type AudioReactiveState = {
   duration: number;
   progress: number;
 
-  level: number;   // overall loudness
-  bass: number;    // low freqs
-  mids: number;    // mids
-  treble: number;  // highs
+  level: number; // overall loudness
+  bass: number; // low freqs
+  mids: number; // mids
+  treble: number; // highs
 
-  onset: boolean;        // "beat-ish" this frame
+  onset: boolean; // "beat-ish" this frame
   onsetStrength: number; // how strong
   timeSinceOnset: number;
   beatIndex: number;
@@ -60,7 +60,7 @@ function computeBands(data: Uint8Array): BandSnapshot {
   if (!len) return { levelRaw: 0, bassRaw: 0, midsRaw: 0, trebleRaw: 0 };
 
   const bassEnd = Math.floor(len * 0.15); // ~15% low
-  const midEnd = Math.floor(len * 0.5);   // next 35% mids
+  const midEnd = Math.floor(len * 0.5); // next 35% mids
 
   let sumAll = 0;
   let sumBass = 0;
@@ -202,13 +202,10 @@ export function updateAudio(dt: number) {
   const bassChange = bass - lastBass;
   lastBass = bass;
 
-  const THRESHOLD = 0.12;     // tweak
-  const MIN_INTERVAL = 0.12;  // seconds
+  const THRESHOLD = 0.12; // tweak
+  const MIN_INTERVAL = 0.12; // seconds
 
-  if (
-    bassChange > THRESHOLD &&
-    audioState.timeSinceOnset > MIN_INTERVAL
-  ) {
+  if (bassChange > THRESHOLD && audioState.timeSinceOnset > MIN_INTERVAL) {
     audioState.onset = true;
     audioState.onsetStrength = bassChange;
     audioState.timeSinceOnset = 0;
@@ -217,4 +214,4 @@ export function updateAudio(dt: number) {
   } else {
     audioState.onsetStrength = 0;
   }
- }
+}

@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dancing-music
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: dancing-music
+          image: ghcr.io/cyrildesch/dancing-music:production

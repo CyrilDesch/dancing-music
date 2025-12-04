@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exemple d'intégration iframe - NDI 2025</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 50%,
+          #0f3460 100%
+        );
+        min-height: 100vh;
+        padding: 20px;
+        color: #fff;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        background: linear-gradient(90deg, #ff0080, #00f0ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .controls {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      label {
+        font-size: 12px;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .file-label {
+        display: inline-block;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #ff0080, #ff4d4d);
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .file-label:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 20px rgba(255, 0, 128, 0.4);
+      }
+
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      button:hover:not(:disabled) {
+        transform: scale(1.05);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn-start {
+        background: linear-gradient(135deg, #00f0ff, #00cc88);
+        color: #000;
+      }
+
+      .btn-stop {
+        background: linear-gradient(135deg, #ff4d4d, #ff0080);
+        color: #fff;
+      }
+
+      .btn-url {
+        background: linear-gradient(135deg, #ffcc00, #ff9500);
+        color: #000;
+      }
+
+      input[type="text"] {
+        padding: 12px 16px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 14px;
+        min-width: 300px;
+      }
+
+      input[type="text"]::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      input[type="range"] {
+        width: 150px;
+        accent-color: #00f0ff;
+      }
+
+      .status {
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 8px;
+        padding: 10px 15px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+
+      .iframe-container {
+        position: relative;
+        width: 100%;
+        height: 600px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      .code-section {
+        margin-top: 30px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 16px;
+        padding: 20px;
+      }
+
+      .code-section h2 {
+        margin-bottom: 15px;
+        color: #00f0ff;
+      }
+
+      pre {
+        background: #1e1e1e;
+        border-radius: 8px;
+        padding: 15px;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      code {
+        color: #d4d4d4;
+      }
+
+      .keyword {
+        color: #569cd6;
+      }
+      .string {
+        color: #ce9178;
+      }
+      .comment {
+        color: #6a9955;
+      }
+      .function {
+        color: #dcdcaa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎵 Intégration iframe - Musique Custom</h1>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Charger un fichier audio</label>
+          <input type="file" id="audioFile" accept="audio/*" />
+          <label for="audioFile" class="file-label"
+            >📁 Choisir un fichier</label
+          >
+        </div>
+
+        <div class="control-group">
+          <label>Ou entrer une URL audio</label>
+          <div style="display: flex; gap: 10px">
+            <input
+              type="text"
+              id="audioUrl"
+              placeholder="https://example.com/music.mp3"
+            />
+            <button class="btn-url" onclick="setAudioFromUrl()">
+              Appliquer URL
+            </button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Contrôles</label>
+          <div style="display: flex; gap: 10px">
+            <button class="btn-start" id="startBtn" onclick="startAudio()">
+              ▶️ Démarrer
+            </button>
+            <button class="btn-stop" onclick="stopAudio()">⏹️ Arrêter</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Volume</label>
+          <input
+            type="range"
+            id="volumeSlider"
+            min="0"
+            max="1"
+            step="0.05"
+            value="1"
+            onchange="setVolume(this.value)"
+          />
+        </div>
+
+        <div class="control-group">
+          <label>Statut</label>
+          <div class="status" id="status">En attente...</div>
+        </div>
+      </div>
+
+      <div class="iframe-container">
+        <iframe id="raveFrame" src="/" allow="autoplay"></iframe>
+      </div>
+
+      <div class="code-section">
+        <h2>📖 Comment utiliser cette API</h2>
+        <pre><code><span class="comment">// 1. Écouter quand l'iframe est prête</span>
+<span class="keyword">window</span>.<span class="function">addEventListener</span>(<span class="string">'message'</span>, (event) => {
+  <span class="keyword">if</span> (event.data.type === <span class="string">'ready'</span>) {
+    console.<span class="function">log</span>(<span class="string">'Iframe prête!'</span>);
+  }
+});
+
+<span class="comment">// 2. Envoyer une URL audio (URL distante, blob URL, ou data URL)</span>
+iframe.contentWindow.<span class="function">postMessage</span>({
+  type: <span class="string">'setAudioUrl'</span>,
+  url: <span class="string">'https://example.com/music.mp3'</span>
+}, <span class="string">'*'</span>);
+
+<span class="comment">// 3. Pour un fichier local, créer un blob URL</span>
+<span class="keyword">const</span> file = inputElement.files[0];
+<span class="keyword">const</span> blobUrl = URL.<span class="function">createObjectURL</span>(file);
+iframe.contentWindow.<span class="function">postMessage</span>({
+  type: <span class="string">'setAudioUrl'</span>,
+  url: blobUrl
+}, <span class="string">'*'</span>);
+
+<span class="comment">// 4. Démarrer/arrêter l'audio</span>
+iframe.contentWindow.<span class="function">postMessage</span>({ type: <span class="string">'startAudio'</span> }, <span class="string">'*'</span>);
+iframe.contentWindow.<span class="function">postMessage</span>({ type: <span class="string">'stopAudio'</span> }, <span class="string">'*'</span>);
+
+<span class="comment">// 5. Régler le volume (0-1)</span>
+iframe.contentWindow.<span class="function">postMessage</span>({
+  type: <span class="string">'setVolume'</span>,
+  volume: 0.5
+}, <span class="string">'*'</span>);
+
+<span class="comment">// 6. Demander le statut</span>
+iframe.contentWindow.<span class="function">postMessage</span>({ type: <span class="string">'getStatus'</span> }, <span class="string">'*'</span>);</code></pre>
+      </div>
+    </div>
+
+    <script>
+      const iframe = document.getElementById("raveFrame");
+      const statusEl = document.getElementById("status");
+      const startBtn = document.getElementById("startBtn");
+
+      // Écouter les messages de l'iframe
+      window.addEventListener("message", (event) => {
+        const { data } = event;
+        if (!data || typeof data !== "object") return;
+
+        console.log("Message reçu de l'iframe:", data);
+
+        switch (data.type) {
+          case "ready":
+            statusEl.textContent = "✅ Iframe prête";
+            break;
+          case "audioUrlSet":
+            statusEl.textContent = "🎵 Audio URL définie";
+            break;
+          case "audioStarted":
+            statusEl.textContent = "▶️ Lecture en cours";
+            startBtn.disabled = true;
+            break;
+          case "audioStopped":
+            statusEl.textContent = "⏹️ Arrêté";
+            startBtn.disabled = false;
+            break;
+          case "volumeSet":
+            statusEl.textContent = `🔊 Volume: ${Math.round(
+              data.volume * 100
+            )}%`;
+            break;
+          case "status":
+            statusEl.textContent = `📊 ${
+              data.playing ? "Lecture" : "Arrêté"
+            } - ${Math.round(data.currentTime)}s`;
+            break;
+        }
+      });
+
+      // Charger un fichier audio local
+      document.getElementById("audioFile").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const blobUrl = URL.createObjectURL(file);
+          iframe.contentWindow.postMessage(
+            {
+              type: "setAudioUrl",
+              url: blobUrl,
+            },
+            "*"
+          );
+          statusEl.textContent = `📁 Fichier: ${file.name}`;
+        }
+      });
+
+      // Définir une URL audio
+      function setAudioFromUrl() {
+        const url = document.getElementById("audioUrl").value;
+        if (url) {
+          iframe.contentWindow.postMessage(
+            {
+              type: "setAudioUrl",
+              url: url,
+            },
+            "*"
+          );
+        }
+      }
+
+      // Démarrer l'audio
+      function startAudio() {
+        iframe.contentWindow.postMessage({ type: "startAudio" }, "*");
+      }
+
+      // Arrêter l'audio
+      function stopAudio() {
+        iframe.contentWindow.postMessage({ type: "stopAudio" }, "*");
+      }
+
+      // Régler le volume
+      function setVolume(value) {
+        iframe.contentWindow.postMessage(
+          {
+            type: "setVolume",
+            volume: parseFloat(value),
+          },
+          "*"
+        );
+      }
+    </script>
+  </body>
+</html>

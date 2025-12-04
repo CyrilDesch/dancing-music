@@ -22,7 +22,7 @@ function AnimatedBackground() {
     const t = audioState.time;
 
     // hue rotates with time, speed modulated by level
-    const hue = ((t * (0.05 + level * 0.3)) % 1 + 1) % 1;
+    const hue = (((t * (0.05 + level * 0.3)) % 1) + 1) % 1;
     const saturation = 0.8;
     const lightness =
       0.05 + 0.25 * (Math.sin(t * 0.3) * 0.5 + 0.5) + level * 0.1;
@@ -49,20 +49,11 @@ function CameraRig() {
 
     const baseRadius = 7;
     const radius =
-      baseRadius +
-      Math.sin(t * 0.9 + o) * 2 +
-      bass * 4 +
-      level * 2;
+      baseRadius + Math.sin(t * 0.9 + o) * 2 + bass * 4 + level * 2;
 
-    const angle =
-      t * (0.3 + level * 0.7) +
-      Math.sin(t * 0.8) * 0.5 +
-      o;
+    const angle = t * (0.3 + level * 0.7) + Math.sin(t * 0.8) * 0.5 + o;
 
-    const height =
-      2 +
-      Math.sin(t * 1.7 + o * 0.3) * (1 + level * 2) +
-      bass * 2;
+    const height = 2 + Math.sin(t * 1.7 + o * 0.3) * (1 + level * 2) + bass * 2;
 
     camera.position.x = Math.cos(angle) * radius;
     camera.position.z = Math.sin(angle) * radius;
@@ -119,8 +110,7 @@ function BackgroundChaos() {
     const t = audioState.time;
 
     group.current.rotation.y = t * (0.1 + level * 0.5);
-    group.current.rotation.z =
-      Math.sin(t * 0.4) * (0.1 + level * 0.4);
+    group.current.rotation.z = Math.sin(t * 0.4) * (0.1 + level * 0.4);
   });
 
   return (
@@ -150,16 +140,14 @@ function AnimatedCube({ config }) {
     const t = audioState.time * config.speed;
     const { level, mids } = audioState;
 
-    mesh.current.position.y +=
-      Math.sin(t * 2.3) * 0.003 * (1 + level * 4);
+    mesh.current.position.y += Math.sin(t * 2.3) * 0.003 * (1 + level * 4);
 
     mesh.current.quaternion.setFromAxisAngle(
       config.rotationAxis,
       t * (1.5 + mids * 4)
     );
 
-    const pulse =
-      0.7 + (Math.sin(t * 5.1) + 1) * 0.25 * (1 + level * 2);
+    const pulse = 0.7 + (Math.sin(t * 5.1) + 1) * 0.25 * (1 + level * 2);
     mesh.current.scale.setScalar(config.size * pulse);
   });
 
