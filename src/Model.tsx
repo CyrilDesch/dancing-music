@@ -6,7 +6,7 @@ import { useGLTF, useAnimations } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { audioState } from "./audioReactive";
 
-const MODEL_PATH = "src/assets/models/cat.glb";
+const MODEL_PATH = "/models/cat.glb";
 
 function Model(props) {
   const group = useRef();
