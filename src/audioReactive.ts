@@ -42,8 +42,8 @@ let freqData: Uint8Array | null = null;
 let lastBass = 0;
 let lastOnsetTime = -999;
 
-// call this once on user click
-export async function startAudio() {
+// call this to start audio; autoplay-friendly if muted=true
+export async function startAudio(options?: { muted?: boolean }) {
   if (!audioContext) {
     audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
@@ -70,8 +70,22 @@ export async function startAudio() {
     });
   }
 
+  // allow muted autoplay; will unmute later on gesture
+  audioElement.muted = !!options?.muted;
   await audioContext.resume();
   await audioElement.play();
+}
+
+export async function unmuteAudio() {
+  if (!audioElement || !audioContext) return;
+  try {
+    audioElement.muted = false;
+    audioElement.volume = 1;
+    await audioContext.resume();
+    await audioElement.play();
+  } catch (e) {
+    // ignore
+  }
 }
 
 // called each frame from R3F

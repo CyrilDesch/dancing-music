@@ -1,13 +1,13 @@
 // src/App.tsx
 // @ts-nocheck
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import Model from "./Model";
 import AudioReactiveUpdater from "./AudioReactiveUpdater";
-import { audioState, startAudio } from "./audioReactive";
+import { audioState, startAudio, unmuteAudio } from "./audioReactive";
 
 function AnimatedBackground() {
   const { scene } = useThree();
@@ -176,52 +176,55 @@ function AnimatedCube({ config }) {
 export default function App() {
   const [started, setStarted] = useState(false);
 
-  async function handleStart() {
-    try {
-      await startAudio();
-      setStarted(true);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  // try muted autoplay; on any gesture/visibility, unmute and ensure playback
+  useEffect(() => {
+    let canceled = false;
+    let startedFlag = false;
+
+    const tryStartMuted = () => {
+      if (canceled || startedFlag) return;
+      startAudio({ muted: true })
+        .then(() => {
+          startedFlag = true;
+          setStarted(true);
+        })
+        .catch(() => {
+          // will retry on gestures/visibility
+        });
+    };
+
+    const unlock = () => {
+      if (canceled) return;
+      unmuteAudio();
+    };
+
+    const visibilityHandler = () => {
+      if (document.visibilityState === "visible") {
+        tryStartMuted();
+        unlock();
+      }
+    };
+
+    tryStartMuted();
+
+    window.addEventListener("pointerdown", unlock, true);
+    window.addEventListener("touchstart", unlock, true);
+    window.addEventListener("keydown", unlock, true);
+    window.addEventListener("pointermove", unlock, true);
+    document.addEventListener("visibilitychange", visibilityHandler, true);
+
+    return () => {
+      canceled = true;
+      window.removeEventListener("pointerdown", unlock, true);
+      window.removeEventListener("touchstart", unlock, true);
+      window.removeEventListener("keydown", unlock, true);
+      window.removeEventListener("pointermove", unlock, true);
+      document.removeEventListener("visibilitychange", visibilityHandler, true);
+    };
+  }, []);
 
   return (
     <>
-      {!started && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "radial-gradient(circle at center, #222 0, #000 60%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 10,
-            color: "white",
-            flexDirection: "column",
-            gap: "1rem",
-            fontFamily: "system-ui, sans-serif",
-          }}
-        >
-          <div>Click to start the cursed rave 👹</div>
-          <button
-            onClick={handleStart}
-            style={{
-              padding: "0.6rem 1.2rem",
-              borderRadius: "999px",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: 600,
-              background:
-                "linear-gradient(135deg, #ff0080, #ffcc00, #00f0ff)",
-              color: "#000",
-            }}
-          >
-            Start music & visuals
-          </button>
-        </div>
-      )}
-
       <Canvas
         camera={{ position: [0, 2, 10], fov: 50 }}
         style={{ width: "100vw", height: "100vh", display: "block" }}
