@@ -33,71 +33,32 @@ export const audioState: AudioReactiveState = {
   beatIndex: 0,
 };
 
+let audioElement: HTMLAudioElement | null = null;
 let audioContext: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
 let sourceNode: MediaElementAudioSourceNode | null = null;
-let audioElement: HTMLAudioElement | null = null;
 let freqData: Uint8Array | null = null;
 
 let lastBass = 0;
 let lastOnsetTime = -999;
+let hasTriedAutoplay = false;
+let hasUnlockedAudio = false;
 
-// call this to start audio; autoplay-friendly if muted=true
-export async function startAudio(options?: { muted?: boolean }) {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-  }
+// --- math helpers ---
+type BandSnapshot = {
+  levelRaw: number;
+  bassRaw: number;
+  midsRaw: number;
+  trebleRaw: number;
+};
 
-  if (!audioElement) {
-    audioElement = new Audio("/audio/track.mp3");
-    audioElement.loop = true;
-    audioElement.crossOrigin = "anonymous";
-  }
+const smooth = (prev: number, curr: number, alpha = 0.8) =>
+  prev * alpha + curr * (1 - alpha);
 
-  if (!sourceNode) {
-    sourceNode = audioContext.createMediaElementSource(audioElement);
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.8;
+function computeBands(data: Uint8Array): BandSnapshot {
+  const len = data.length;
+  if (!len) return { levelRaw: 0, bassRaw: 0, midsRaw: 0, trebleRaw: 0 };
 
-    sourceNode.connect(analyser);
-    analyser.connect(audioContext.destination);
-
-    freqData = new Uint8Array(analyser.frequencyBinCount);
-
-    audioElement.addEventListener("loadedmetadata", () => {
-      audioState.duration = audioElement.duration || 0;
-    });
-  }
-
-  // allow muted autoplay; will unmute later on gesture
-  audioElement.muted = !!options?.muted;
-  await audioContext.resume();
-  await audioElement.play();
-}
-
-export async function unmuteAudio() {
-  if (!audioElement || !audioContext) return;
-  try {
-    audioElement.muted = false;
-    audioElement.volume = 1;
-    await audioContext.resume();
-    await audioElement.play();
-  } catch (e) {
-    // ignore
-  }
-}
-
-// called each frame from R3F
-export function updateAudio(dt: number) {
-  if (!audioContext || !analyser || !freqData || !audioElement) return;
-
-  analyser.getByteFrequencyData(freqData);
-
-  const len = freqData.length;
-  if (!len) return;
-
-  // simple 3-band split
   const bassEnd = Math.floor(len * 0.15); // ~15% low
   const midEnd = Math.floor(len * 0.5);   // next 35% mids
 
@@ -107,7 +68,7 @@ export function updateAudio(dt: number) {
   let sumTreble = 0;
 
   for (let i = 0; i < len; i++) {
-    const v = freqData[i];
+    const v = data[i];
     sumAll += v;
     if (i < bassEnd) sumBass += v;
     else if (i < midEnd) sumMids += v;
@@ -119,32 +80,124 @@ export function updateAudio(dt: number) {
   const midsNorm = 255 * (midEnd - bassEnd);
   const trebleNorm = 255 * (len - midEnd);
 
-  // crude normalization
-  const levelRaw = sumAll / norm;
-  const bassRaw = sumBass / (bassNorm || 1);
-  const midsRaw = sumMids / (midsNorm || 1);
-  const trebleRaw = sumTreble / (trebleNorm || 1);
+  return {
+    levelRaw: sumAll / norm,
+    bassRaw: sumBass / (bassNorm || 1),
+    midsRaw: sumMids / (midsNorm || 1),
+    trebleRaw: sumTreble / (trebleNorm || 1),
+  };
+}
 
-  // simple smoothing
-  const smooth = (prev: number, curr: number, alpha = 0.8) =>
-    prev * alpha + curr * (1 - alpha);
+// --- autoplay / unlock helpers ---
+export function initAudioAutoplay() {
+  if (!audioElement) {
+    audioElement = new Audio("/audio/track.mp3");
+    audioElement.loop = true;
+    audioElement.crossOrigin = "anonymous";
+    audioElement.preload = "auto";
+    audioElement.addEventListener("loadedmetadata", () => {
+      audioState.duration = audioElement?.duration || 0;
+    });
+  }
 
-  audioState.level = smooth(audioState.level, levelRaw);
-  audioState.bass = smooth(audioState.bass, bassRaw);
-  audioState.mids = smooth(audioState.mids, midsRaw);
-  audioState.treble = smooth(audioState.treble, trebleRaw);
+  if (hasTriedAutoplay || !audioElement) return;
+  hasTriedAutoplay = true;
 
-  // timing
+  audioElement.muted = true;
+  audioElement.volume = 0;
+  audioElement.play().catch(() => {
+    // autoplay blocked; will unlock on gesture
+  });
+}
+
+export function unlockAudioFromGesture() {
+  if (hasUnlockedAudio) return;
+  hasUnlockedAudio = true;
+
+  if (!audioElement) {
+    audioElement = new Audio("/audio/track.mp3");
+    audioElement.loop = true;
+    audioElement.crossOrigin = "anonymous";
+    audioElement.preload = "auto";
+  }
+
+  if (!audioContext) {
+    const AC = window.AudioContext || (window as any).webkitAudioContext;
+    audioContext = new AC();
+  }
+
+  // play a 1-sample silent buffer to unlock audio on Safari/iOS
+  if (audioContext && audioContext.state !== "running") {
+    const buffer = audioContext.createBuffer(1, 1, audioContext.sampleRate);
+    const dummy = audioContext.createBufferSource();
+    dummy.buffer = buffer;
+    dummy.connect(audioContext.destination);
+    dummy.start(0);
+    audioContext.resume().catch(() => {});
+  }
+
+  if (audioContext && !analyser) {
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.8;
+  }
+
+  if (audioContext && audioElement && !sourceNode) {
+    sourceNode = audioContext.createMediaElementSource(audioElement);
+    sourceNode.connect(analyser!);
+    analyser!.connect(audioContext.destination);
+  }
+
+  if (analyser && !freqData) {
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+  }
+
+  if (audioElement) {
+    audioElement.muted = false;
+    audioElement.volume = 1;
+    if (audioElement.paused) {
+      audioElement.play().catch(() => {});
+    }
+  }
+}
+
+// compatibility wrappers (kept for existing imports)
+export async function startAudio(options?: { muted?: boolean }) {
+  initAudioAutoplay();
+  if (options?.muted) return;
+  unlockAudioFromGesture();
+}
+
+export async function unmuteAudio() {
+  unlockAudioFromGesture();
+}
+
+// called each frame from R3F
+export function updateAudio(dt: number) {
+  if (!audioElement) return;
+
+  // timing always available
   audioState.time = audioElement.currentTime || 0;
+  audioState.duration = audioElement.duration || audioState.duration;
   audioState.progress = audioState.duration
     ? audioState.time / audioState.duration
     : 0;
 
-  // onset detection (super dumb)
+  if (!audioContext || !analyser || !freqData) return;
+
+  analyser.getByteFrequencyData(freqData);
+
+  const bands = computeBands(freqData);
+
+  audioState.level = smooth(audioState.level, bands.levelRaw);
+  audioState.bass = smooth(audioState.bass, bands.bassRaw);
+  audioState.mids = smooth(audioState.mids, bands.midsRaw);
+  audioState.treble = smooth(audioState.treble, bands.trebleRaw);
+
+  // onset detection (unchanged)
   audioState.onset = false;
   audioState.timeSinceOnset += dt;
 
-  const now = audioState.time;
   const bass = audioState.bass;
   const bassChange = bass - lastBass;
   lastBass = bass;
@@ -160,8 +213,8 @@ export function updateAudio(dt: number) {
     audioState.onsetStrength = bassChange;
     audioState.timeSinceOnset = 0;
     audioState.beatIndex += 1;
-    lastOnsetTime = now;
+    lastOnsetTime = audioState.time;
   } else {
     audioState.onsetStrength = 0;
   }
-}
+ }

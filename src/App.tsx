@@ -1,13 +1,17 @@
 // src/App.tsx
 // @ts-nocheck
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import Model from "./Model";
 import AudioReactiveUpdater from "./AudioReactiveUpdater";
-import { audioState, startAudio, unmuteAudio } from "./audioReactive";
+import {
+  audioState,
+  initAudioAutoplay,
+  unlockAudioFromGesture,
+} from "./audioReactive";
 
 function AnimatedBackground() {
   const { scene } = useThree();
@@ -174,51 +178,28 @@ function AnimatedCube({ config }) {
 }
 
 export default function App() {
-  const [started, setStarted] = useState(false);
-
   // try muted autoplay; on any gesture/visibility, unmute and ensure playback
   useEffect(() => {
-    let canceled = false;
-    let startedFlag = false;
-
-    const tryStartMuted = () => {
-      if (canceled || startedFlag) return;
-      startAudio({ muted: true })
-        .then(() => {
-          startedFlag = true;
-          setStarted(true);
-        })
-        .catch(() => {
-          // will retry on gestures/visibility
-        });
-    };
-
-    const unlock = () => {
-      if (canceled) return;
-      unmuteAudio();
-    };
+    const unlock = () => unlockAudioFromGesture();
 
     const visibilityHandler = () => {
       if (document.visibilityState === "visible") {
-        tryStartMuted();
-        unlock();
+        initAudioAutoplay();
+        unlockAudioFromGesture();
       }
     };
 
-    tryStartMuted();
+    initAudioAutoplay();
 
     window.addEventListener("pointerdown", unlock, true);
     window.addEventListener("touchstart", unlock, true);
     window.addEventListener("keydown", unlock, true);
-    window.addEventListener("pointermove", unlock, true);
     document.addEventListener("visibilitychange", visibilityHandler, true);
 
     return () => {
-      canceled = true;
       window.removeEventListener("pointerdown", unlock, true);
       window.removeEventListener("touchstart", unlock, true);
       window.removeEventListener("keydown", unlock, true);
-      window.removeEventListener("pointermove", unlock, true);
       document.removeEventListener("visibilitychange", visibilityHandler, true);
     };
   }, []);
