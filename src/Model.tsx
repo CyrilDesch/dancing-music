@@ -32,34 +32,34 @@ function Model(props) {
 
     // Modulate animation speed based on music
     if (currentAction.current) {
-      // Speed varies from 0.5 (quiet) to 3.0 (loud with bass)
-      const animSpeed = 0.5 + level * 1.5 + bass * 1.0;
+      // Speed varies from 0.5 (quiet) to 2.0 (loud with bass) - reduced intensity
+      const animSpeed = 0.5 + level * 0.8 + bass * 0.5;
       currentAction.current.timeScale = animSpeed;
     }
 
     // warp based on bass/level
     if (group.current) {
-      const intensity = 0.3 + level * 1.5;
-      // Smaller base scale (reduced from 1 + bass * 3)
-      const baseScale = 0.6 + bass * 0.5;
+      const intensity = 0.2 + level * 0.8;
+      // Smaller base scale - further reduced
+      const baseScale = 0.7 + bass * 0.3;
 
-      const jitter = 0.1 * intensity;
+      const jitter = 0.05 * intensity;
 
       const sx = baseScale + (Math.random() - 0.5) * jitter;
       const sy = baseScale + (Math.random() - 0.5) * jitter;
       const sz = baseScale + (Math.random() - 0.5) * jitter;
       group.current.scale.set(sx, sy, sz);
 
-      // continuous spin - faster with more bass
-      group.current.rotation.y += 0.02 + bass * 0.08;
+      // continuous spin - slower with more bass
+      group.current.rotation.y += 0.015 + bass * 0.04;
 
-      // light wobble
-      group.current.position.y = Math.sin(time * 2.0 + bass * 5.0) * 0.3;
+      // lighter wobble
+      group.current.position.y = Math.sin(time * 2.0 + bass * 5.0) * 0.15;
 
-      // tilt on beats
+      // gentler tilt on beats
       if (onset) {
-        group.current.rotation.x = (Math.random() - 0.5) * 0.3;
-        group.current.rotation.z = (Math.random() - 0.5) * 0.3;
+        group.current.rotation.x = (Math.random() - 0.5) * 0.15;
+        group.current.rotation.z = (Math.random() - 0.5) * 0.15;
       } else {
         // slowly return to normal
         group.current.rotation.x *= 0.95;

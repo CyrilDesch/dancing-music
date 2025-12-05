@@ -52,19 +52,20 @@ function CameraRig() {
 
     const baseRadius = 7;
     const radius =
-      baseRadius + Math.sin(t * 0.9 + o) * 2 + bass * 4 + level * 2;
+      baseRadius + Math.sin(t * 0.9 + o) * 1.5 + bass * 2 + level * 1;
 
-    const angle = t * (0.3 + level * 0.7) + Math.sin(t * 0.8) * 0.5 + o;
+    const angle = t * (0.3 + level * 0.5) + Math.sin(t * 0.8) * 0.3 + o;
 
-    const height = 2 + Math.sin(t * 1.7 + o * 0.3) * (1 + level * 2) + bass * 2;
+    const height =
+      2 + Math.sin(t * 1.7 + o * 0.3) * (0.8 + level * 1.2) + bass * 1;
 
     camera.position.x = Math.cos(angle) * radius;
     camera.position.z = Math.sin(angle) * radius;
     camera.position.y = height;
 
-    // little shake on strong beats
+    // gentler shake on strong beats
     if (audioState.onset) {
-      const s = 0.2 + audioState.onsetStrength * 2;
+      const s = 0.1 + audioState.onsetStrength * 1;
       camera.position.x += (Math.random() - 0.5) * s;
       camera.position.y += (Math.random() - 0.5) * s;
       camera.position.z += (Math.random() - 0.5) * s;

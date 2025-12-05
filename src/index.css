@@ -24,7 +24,7 @@ body {
   top: 50%;
   transform: translateY(-50%);
   width: 60px;
-  height: 380px;
+  height: 280px;
   background: linear-gradient(180deg, #0a0e27 0%, #0f1419 50%, #0a0e27 100%);
   border: 2px solid #ff00ff;
   display: flex;
@@ -32,15 +32,19 @@ body {
   align-items: center;
   padding: 1rem 0.5rem;
   gap: 0.75rem;
-  box-shadow: 
-    0 0 20px rgba(255, 0, 255, 0.4),
-    0 0 40px rgba(255, 0, 255, 0.2),
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.4), 0 0 40px rgba(255, 0, 255, 0.2),
     inset 0 0 30px rgba(0, 0, 0, 0.5);
   z-index: 1000;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   clip-path: polygon(
-    0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px,
-    100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px)
+    0 10px,
+    10px 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0 calc(100% - 10px)
   );
 }
 
@@ -118,8 +122,15 @@ body {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; box-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41; }
-  50% { opacity: 0.7; box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41; }
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
+  }
 }
 
 /* Progress container */
@@ -189,7 +200,11 @@ body {
   left: 50%;
   transform: translateX(-50%);
   width: 20px;
-  background: radial-gradient(ellipse at center, rgba(255, 0, 255, 0.3) 0%, transparent 70%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 0, 255, 0.3) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   transition: height 0.1s ease-out;
 }
@@ -233,7 +248,16 @@ body {
   justify-content: center;
   position: relative;
   transition: all 0.3s ease;
-  clip-path: polygon(15% 0, 85% 0, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0 85%, 0 15%);
+  clip-path: polygon(
+    15% 0,
+    85% 0,
+    100% 15%,
+    100% 85%,
+    85% 100%,
+    15% 100%,
+    0 85%,
+    0 15%
+  );
 }
 
 .cyber-player-btn:hover {
@@ -260,7 +284,11 @@ body {
 .cyber-player-btn-glow {
   position: absolute;
   inset: -2px;
-  background: radial-gradient(circle at center, rgba(255, 0, 255, 0.2) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 0, 255, 0.2) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -281,7 +309,7 @@ body {
 
 /* Scanline effect */
 .cyber-player::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
