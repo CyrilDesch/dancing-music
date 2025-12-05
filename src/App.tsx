@@ -7,6 +7,7 @@ import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import Model from "./Model";
 import AudioReactiveUpdater from "./AudioReactiveUpdater";
+import MusicPlayer from "./MusicPlayer";
 import {
   audioState,
   initAudioAutoplay,
@@ -246,6 +247,9 @@ export default function App() {
           />
         </mesh>
       </Canvas>
+
+      {/* Cyberpunk Music Player */}
+      <MusicPlayer />
     </>
   );
 }

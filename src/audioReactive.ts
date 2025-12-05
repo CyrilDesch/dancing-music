@@ -259,6 +259,43 @@ export function handleIframeMessage(data: any) {
   }
 }
 
+// --- Player control functions ---
+export function togglePlayPause() {
+  if (!audioElement) {
+    initAudioAutoplay();
+    unlockAudioFromGesture();
+    return;
+  }
+
+  if (audioElement.paused) {
+    unlockAudioFromGesture();
+    audioElement.play().catch(() => {});
+  } else {
+    audioElement.pause();
+  }
+}
+
+export function seekTo(time: number) {
+  if (audioElement) {
+    audioElement.currentTime = Math.max(
+      0,
+      Math.min(time, audioElement.duration || 0)
+    );
+  }
+}
+
+export function isPlaying(): boolean {
+  return audioElement ? !audioElement.paused : false;
+}
+
+export function getCurrentTime(): number {
+  return audioElement?.currentTime || 0;
+}
+
+export function getDuration(): number {
+  return audioElement?.duration || audioState.duration || 0;
+}
+
 // called each frame from R3F
 export function updateAudio(dt: number) {
   if (!audioElement) return;

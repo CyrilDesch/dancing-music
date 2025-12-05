@@ -15,3 +15,313 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 }
+
+/* ===== CYBERPUNK MUSIC PLAYER ===== */
+
+.cyber-player {
+  position: fixed;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 380px;
+  background: linear-gradient(180deg, #0a0e27 0%, #0f1419 50%, #0a0e27 100%);
+  border: 2px solid #ff00ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  gap: 0.75rem;
+  box-shadow: 
+    0 0 20px rgba(255, 0, 255, 0.4),
+    0 0 40px rgba(255, 0, 255, 0.2),
+    inset 0 0 30px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  font-family: 'Courier New', monospace;
+  clip-path: polygon(
+    0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px,
+    100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px)
+  );
+}
+
+/* Corner accents */
+.cyber-player-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #00ff41;
+}
+
+.cyber-player-corner-tl {
+  top: 4px;
+  left: 4px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.cyber-player-corner-tr {
+  top: 4px;
+  right: 4px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.cyber-player-corner-bl {
+  bottom: 4px;
+  left: 4px;
+  border-right: none;
+  border-top: none;
+}
+
+.cyber-player-corner-br {
+  bottom: 4px;
+  right: 4px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Header */
+.cyber-player-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cyber-player-label {
+  color: #ff00ff;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+  font-weight: bold;
+}
+
+.cyber-player-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyber-player-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #333;
+  border: 1px solid #00ff41;
+  transition: all 0.3s ease;
+}
+
+.cyber-player-dot.active {
+  background: #00ff41;
+  box-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+  animation: pulse-dot 1s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41; }
+  50% { opacity: 0.7; box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41; }
+}
+
+/* Progress container */
+.cyber-player-progress-container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  cursor: pointer;
+  position: relative;
+  padding: 0 0.5rem;
+}
+
+.cyber-player-track {
+  width: 8px;
+  height: 100%;
+  background: #1a1a3a;
+  border: 1px solid #2a2a4a;
+  position: relative;
+  overflow: visible;
+}
+
+/* Tick marks */
+.cyber-player-tick {
+  position: absolute;
+  left: -4px;
+  width: 16px;
+  height: 1px;
+  background: #2a2a4a;
+}
+
+/* Progress fill */
+.cyber-player-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(0deg, #ff00ff 0%, #00d9ff 100%);
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+  transition: height 0.1s ease-out;
+}
+
+/* Seek handle */
+.cyber-player-handle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 12px;
+  background: #ff00ff;
+  clip-path: polygon(0 50%, 50% 0, 100% 50%, 50% 100%);
+  box-shadow: 0 0 15px #ff00ff;
+  transition: bottom 0.1s ease-out;
+  z-index: 2;
+}
+
+.cyber-player-handle:hover {
+  background: #00ff41;
+  box-shadow: 0 0 20px #00ff41;
+}
+
+/* Glow effect */
+.cyber-player-glow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  background: radial-gradient(ellipse at center, rgba(255, 0, 255, 0.3) 0%, transparent 70%);
+  pointer-events: none;
+  transition: height 0.1s ease-out;
+}
+
+/* Time display */
+.cyber-player-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  line-height: 1.1;
+}
+
+.cyber-player-current {
+  color: #00ff41;
+  font-size: 0.7rem;
+  text-shadow: 0 0 8px #00ff41;
+  font-weight: bold;
+}
+
+.cyber-player-separator {
+  color: #666;
+  font-size: 0.5rem;
+}
+
+.cyber-player-duration {
+  color: #00d9ff;
+  font-size: 0.6rem;
+  opacity: 0.8;
+}
+
+/* Play/Pause button */
+.cyber-player-btn {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #1a0a2a 0%, #0a1a2a 100%);
+  border: 2px solid #ff00ff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+  clip-path: polygon(15% 0, 85% 0, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0 85%, 0 15%);
+}
+
+.cyber-player-btn:hover {
+  border-color: #00ff41;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+.cyber-player-btn:hover .cyber-player-icon {
+  fill: #00ff41;
+}
+
+.cyber-player-btn:active {
+  transform: scale(0.95);
+}
+
+.cyber-player-icon {
+  width: 18px;
+  height: 18px;
+  fill: #ff00ff;
+  transition: fill 0.3s ease;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.cyber-player-btn-glow {
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(circle at center, rgba(255, 0, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cyber-player-btn:hover .cyber-player-btn-glow {
+  opacity: 1;
+}
+
+/* Status text */
+.cyber-player-status {
+  color: #666;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Scanline effect */
+.cyber-player::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cyber-player {
+    right: 0.75rem;
+    width: 50px;
+    height: 300px;
+    padding: 0.75rem 0.25rem;
+  }
+
+  .cyber-player-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .cyber-player-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .cyber-player-label {
+    font-size: 0.5rem;
+  }
+
+  .cyber-player-current {
+    font-size: 0.6rem;
+  }
+
+  .cyber-player-duration {
+    font-size: 0.5rem;
+  }
+}
