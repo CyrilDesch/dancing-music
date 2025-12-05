@@ -24,7 +24,7 @@ body {
   top: 50%;
   transform: translateY(-50%);
   width: 60px;
-  height: 280px;
+  height: 240px;
   background: linear-gradient(180deg, #0a0e27 0%, #0f1419 50%, #0a0e27 100%);
   border: 2px solid #ff00ff;
   display: flex;
@@ -327,7 +327,7 @@ body {
   .cyber-player {
     right: 0.75rem;
     width: 50px;
-    height: 300px;
+    height: 240px;
     padding: 0.75rem 0.25rem;
   }
 
